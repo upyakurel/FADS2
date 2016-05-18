@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="ISO-8859-1">
+<title>Welcome</title>
+</head>
+<body data-ng-app = "empApp">
+Greetings Test Angular
+<br>
+<div data-ng-controller = "empControl">
+	<p><b>Create New User</b></p>
+	E-mail: <input data-ng-model = "mEmail" type = "text" name = "email"/><br>
+	Name: <input data-ng-model = "mName" type = "text" name = "name" /><br>
+	<input type = "button" data-ng-click = "empButton()" value = "Create"/><br><br>
+	
+	<p><b>Lookup Email: </b></p>
+	Enter email: <input type = "text" data-ng-model = "mLookupEmail" name = "lookupEmail" />
+	<input type = "button" data-ng-click = "lookup()" value = "Find By Email" />
+
+<table>
+    <tr>
+        <th>Message</th>
+        <th>User ID</th>
+    </tr>
+    <tr>
+    	<td>{{dMessage}}</td>
+		<td>{{dId}}</td>
+    </tr>
+</table>
+<p><b>Delete User by ID:</b></p> <input type = "text" data-ng-model = "mDelete" name = "delete"/><br>
+<input type = "button" data-ng-click = "empDelete()" value = "Delete"/>
+<div>{{deleteMessage}}</div>
+<br><br>
+<p><b>Update User:</b></p> <br>
+User ID: <input type = "text" data-ng-model = "mUpdateId" name = "updateId" /><br>
+User Email: <input type = "text" data-ng-model = "mUpdateEmail" name = "updateEmail" /><br>
+User Name: <input type = "text" data-ng-model = "mUpdateName" name = "updateName" /><br>
+<input type = "button" data-ng-click = "empUpdate()" value = "Update" name = "update"/> <br>
+<div>{{updateSuccess}}</div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+<script>
+var app = angular.module("empApp",[]);
+app.controller("empControl", function($scope, $http) {
+	$scope.empUpdate = function() {
+		alert("Inside update");
+		var dataObj = {
+			id : $scope.mUpdateId,
+			email : $scope.mUpdateEmail,
+			name : $scope.mUpdateName
+		};
+		
+		alert("ID: " + $scope.mUpdateId + " Email: " + $scope.mUpdateEmail + " Name: " + $scope.mUpdateName);
+		alert("Data Object: " + JSON.stringify(dataObj));
+		
+		var res = $http.post("/update", dataObj);
+		res.success(function(data) {
+			angular.forEach(data, function(value, key) {
+				$scope.updateSuccess = value;
+			});
+		});
+		res.error(function(data) {
+			alert("Failure: " + data);
+		});
+	}
+	
+	$scope.empDelete = function() {
+		var dataObj = $scope.mDelete;		
+		var res = $http.post("/delete", dataObj);
+		res.success(function(data) {
+			alert("Success: " + data);
+			angular.forEach(data, function(value, key) {
+			    $scope.deleteMessage = value;
+			});
+		});
+		res.error(function(data, errorThrown) {
+			alert("Failure: " + data);
+			alert("Error: " + errorThrown);
+		});
+	}
+	
+	$scope.lookup = function() {
+		
+		var dataObj = {
+				email : $scope.mLookupEmail
+		};
+		
+		var res = $http.post("/findEmail", dataObj);
+		
+		var message = "";
+		var userid = "";
+		
+		res.success(function(data, status, headers, config) {
+			$scope.lookup = data;
+			alert(JSON.stringify($scope.lookup));
+			angular.forEach(data, function(value, key) {
+			    $scope.dMessage = key;
+			    $scope.dId = value;
+			});
+		});
+		res.error(function(data, status, headers, config) {
+			alert( "failure message: " + JSON.stringify({data: data}));
+		});
+	}
+	
+	$scope.empButton = function() {
+		
+		var dataObj = {
+				email : $scope.mEmail,
+				name : $scope.mName
+		};	
+		
+		var res = $http.post("/create", dataObj);
+		res.success(function(data, status, headers, config) {
+			$scope.message = data
+		});
+		res.error(function(data, status, headers, config) {
+			alert( "Failure: " + JSON.stringify({data: data}));
+		});
+	}
+});
+</script>
+</body>
+</html>
